@@ -45,13 +45,6 @@ if (button && output) {
               break;
           }
 
-          // Try to use cached location
-          const cached = localStorage.getItem('lastKnownLocation');
-          if (cached) {
-            const cachedData = JSON.parse(cached);
-            errorMsg += `\n\nUsing last known location from ${cachedData.timestamp}:\n${JSON.stringify(cachedData, null, 2)}`;
-          }
-
           output.textContent = errorMsg;
         },
         {
