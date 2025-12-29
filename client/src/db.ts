@@ -1,56 +1,36 @@
 import { Capacitor } from '@capacitor/core';
-import {
-  SQLiteConnection,
-  CapacitorSQLite,
-} from '@capacitor-community/sqlite';
 
-const sqlite = new SQLiteConnection(CapacitorSQLite);
+// Simple IndexedDB wrapper for web
+let dbPromise: Promise<IDBDatabase> | null = null;
 
-let db: any = null;
+function openDB(): Promise<IDBDatabase> {
+  if (dbPromise) return dbPromise;
 
-// Initialize web store - must be called before any DB operations
+  dbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open('gainforest', 1);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains('gnss_sessions')) {
+        const store = db.createObjectStore('gnss_sessions', { keyPath: 'session_id' });
+        store.createIndex('created_at', 'created_at', { unique: false });
+      }
+    };
+  });
+
+  return dbPromise;
+}
+
 export async function initWebStore() {
   if (Capacitor.getPlatform() === 'web') {
-    console.log('Initializing web store...');
-    await sqlite.initWebStore();
-    console.log('✓ Web store initialized');
+    console.log('Initializing IndexedDB...');
+    await openDB();
+    console.log('✓ IndexedDB initialized');
   }
 }
-
-export async function getDB() {
-  if (db) return db;
-
-  const consistency = await sqlite.checkConnectionsConsistency();
-  const isConn = (await sqlite.isConnection('gainforest', false)).result;
-
-  if (consistency.result && isConn) {
-    db = await sqlite.retrieveConnection('gainforest', false);
-  } else {
-    db = await sqlite.createConnection(
-      'gainforest',
-      false,
-      'no-encryption',
-      1,
-      false
-    );
-  }
-
-  await db.open();
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS gnss_sessions (
-      session_id TEXT PRIMARY KEY,
-      lat REAL,
-      lon REAL,
-      accuracy REAL,
-      gnss_timestamp INTEGER,
-      created_at INTEGER
-    );
-  `);
-
-  return db;
-}
-
 
 export async function saveGNSS(sessionId: string, fix: {
   lat: number;
@@ -58,28 +38,48 @@ export async function saveGNSS(sessionId: string, fix: {
   accuracy: number;
   timestamp: number;
 }) {
-  const db = await getDB();
+  const db = await openDB();
+  const tx = db.transaction('gnss_sessions', 'readwrite');
+  const store = tx.objectStore('gnss_sessions');
 
-  await db.run(
-    `INSERT OR REPLACE INTO gnss_sessions
-     (session_id, lat, lon, accuracy, gnss_timestamp, created_at)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      sessionId,
-      fix.lat,
-      fix.lon,
-      fix.accuracy,
-      fix.timestamp,
-      Date.now()
-    ]
-  );
+  const data = {
+    session_id: sessionId,
+    lat: fix.lat,
+    lon: fix.lon,
+    accuracy: fix.accuracy,
+    gnss_timestamp: fix.timestamp,
+    created_at: Date.now()
+  };
+
+  await new Promise((resolve, reject) => {
+    const request = store.put(data);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+  console.log('✓ GNSS data saved:', sessionId);
 }
 
 export async function loadGNSS(sessionId: string) {
-  const db = await getDB();
-  const res = await db.query(
-    `SELECT * FROM gnss_sessions WHERE session_id = ?`,
-    [sessionId]
-  );
-  return res.values?.[0];
+  const db = await openDB();
+  const tx = db.transaction('gnss_sessions', 'readonly');
+  const store = tx.objectStore('gnss_sessions');
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(sessionId);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function listAllSessions() {
+  const db = await openDB();
+  const tx = db.transaction('gnss_sessions', 'readonly');
+  const store = tx.objectStore('gnss_sessions');
+
+  return new Promise<any[]>((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
 }

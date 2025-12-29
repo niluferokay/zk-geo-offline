@@ -1,9 +1,54 @@
+import { saveGNSS, listAllSessions, initWebStore } from './db';
+
+// Initialize SQLite web store and set up event listeners after it's ready
+(async () => {
+  await initWebStore();
+  console.log('SQLite initialized');
+})();
+
+(window as any).dumpGNSS = async () => {
+  const rows = await listAllSessions();
+  console.table(rows);
+};
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js');
 }
 
 const button = document.getElementById('get-location');
 const output = document.getElementById('location-output');
+const historyBtn = document.getElementById('show-history');
+
+historyBtn?.addEventListener('click', async () => {
+  if (!output) return;
+
+  // Wait for initialization to complete
+  await initWebStore();
+
+  const rows = await listAllSessions();
+
+  if (!rows.length) {
+    output.textContent = 'No stored sessions yet.';
+    return;
+  }
+
+  // Sort by created_at ascending (oldest first) and format the data
+  const sorted = rows.sort((a, b) => a.created_at - b.created_at);
+  const formatted = sorted.map((row, index) => ({    
+    '#': index + 1,
+    session_id: row.session_id,
+    latitude: row.lat,
+    longitude: row.lon,
+    accuracy: `${row.accuracy}m`,
+    gnss_timestamp: new Date(row.gnss_timestamp).toISOString(),
+    created_at: new Date(row.created_at).toISOString()
+  }));
+
+  // Reverse to show highest index first
+  output.textContent = JSON.stringify(formatted.reverse(), null, 2);
+});
+
+const sessionId = crypto.randomUUID();
 
 if (button && output) {
   button.addEventListener('click', () => {
@@ -11,7 +56,7 @@ if (button && output) {
       output.textContent = 'Acquiring GNSS/GPS position... (this may take 30-60s for satellite lock)';
 
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude, accuracy, altitude, altitudeAccuracy, heading, speed } = position.coords;
           const locationData = {
             latitude,
@@ -29,6 +74,28 @@ if (button && output) {
 
           // Cache location for offline use
           localStorage.setItem('lastKnownLocation', JSON.stringify(locationData));
+          
+          // ✅ SAVE TO SQLITE HERE
+          const gnssFix = {
+            lat: latitude,
+            lon: longitude,
+            accuracy,
+            timestamp: position.timestamp
+        };
+
+          // Ensure web store is initialized before saving
+          await initWebStore();
+          await saveGNSS(sessionId, gnssFix);
+
+        output.textContent = JSON.stringify(
+          {
+            message: 'GNSS saved locally (offline)',
+            sessionId,
+            gnssFix
+          },
+          null,
+          2
+        );
         },
         (error) => {
           let errorMsg = `Error getting location: ${error.message}\n\n`;
@@ -58,3 +125,4 @@ if (button && output) {
     }
   });
 }
+
