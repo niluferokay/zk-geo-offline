@@ -37,6 +37,8 @@ export async function saveGNSS(sessionId: string, fix: {
   lon: number;
   accuracy: number;
   timestamp: number;
+  proof?: any;
+  publicSignals?: string[];
 }) {
   const db = await openDB();
   const tx = db.transaction('gnss_sessions', 'readwrite');
@@ -48,7 +50,9 @@ export async function saveGNSS(sessionId: string, fix: {
     lon: fix.lon,
     accuracy: fix.accuracy,
     gnss_timestamp: fix.timestamp,
-    created_at: Date.now()
+    created_at: Date.now(),
+    proof: fix.proof || null,
+    publicSignals: fix.publicSignals || null
   };
 
   await new Promise((resolve, reject) => {
@@ -58,6 +62,9 @@ export async function saveGNSS(sessionId: string, fix: {
   });
 
   console.log('✓ GNSS data saved:', sessionId);
+  if (fix.proof) {
+    console.log('✓ ZK proof saved with location');
+  }
 }
 
 export async function loadGNSS(sessionId: string) {
@@ -82,4 +89,41 @@ export async function listAllSessions() {
     request.onsuccess = () => resolve(request.result || []);
     request.onerror = () => reject(request.error);
   });
+}
+
+export async function getAllProofs() {
+  const sessions = await listAllSessions();
+
+  // Filter only sessions that have proofs
+  return sessions
+    .filter(session => session.proof && session.publicSignals)
+    .map(session => ({
+      session_id: session.session_id,
+      lat: session.lat,
+      lon: session.lon,
+      accuracy: session.accuracy,
+      timestamp: session.gnss_timestamp,
+      created_at: session.created_at,
+      proof: session.proof,
+      publicSignals: session.publicSignals
+    }));
+}
+
+export async function getProofBySessionId(sessionId: string) {
+  const session = await loadGNSS(sessionId) as any;
+
+  if (!session || !session.proof) {
+    return null;
+  }
+
+  return {
+    session_id: session.session_id,
+    lat: session.lat,
+    lon: session.lon,
+    accuracy: session.accuracy,
+    timestamp: session.gnss_timestamp,
+    created_at: session.created_at,
+    proof: session.proof,
+    publicSignals: session.publicSignals
+  };
 }

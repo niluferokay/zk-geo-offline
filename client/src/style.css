@@ -11,6 +11,26 @@ body {
   color: #1d1d1f;
 }
 
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+section {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1d1d1f;
+}
+
 /* Button container */
 .button-container {
   display: flex;
@@ -89,17 +109,198 @@ pre {
   }
 }
 
+/* Polygon Selection Styles */
+.polygon-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.polygon-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #e5e5e7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.polygon-option:hover {
+  border-color: #007AFF;
+  background: #f8f9fa;
+}
+
+.polygon-option input[type="radio"] {
+  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.polygon-option.selected {
+  border-color: #007AFF;
+  background: #e8f4ff;
+}
+
+.polygon-label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.polygon-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #1d1d1f;
+}
+
+.polygon-description {
+  font-size: 14px;
+  color: #6e6e73;
+  margin-top: 4px;
+}
+
+.polygon-info {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.polygon-info .hash {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  color: #007AFF;
+  margin-top: 8px;
+}
+
+/* Upload Section Styles */
+.upload-section details {
+  cursor: pointer;
+}
+
+.upload-section summary {
+  font-weight: 600;
+  padding: 8px;
+  color: #007AFF;
+  list-style: none;
+  display: flex;
+  align-items: center;
+}
+
+.upload-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.upload-section summary::before {
+  content: '▶';
+  margin-right: 8px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.upload-section details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.upload-controls {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upload-method {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-method label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1d1d1f;
+}
+
+#geojson-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e5e7;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+#geojson-input:focus {
+  outline: none;
+  border-color: #007AFF;
+}
+
+#file-input {
+  padding: 8px;
+  border: 2px solid #e5e5e7;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+#load-geojson {
+  max-width: 200px;
+  padding: 10px 20px;
+  background: #007AFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#load-geojson:hover {
+  background: #0051D5;
+}
+
+#load-geojson:active {
+  transform: scale(0.98);
+}
+
+/* Generate Proof Button */
+#generate-proof {
+  background: linear-gradient(135deg, #34C759 0%, #28A745 100%);
+  color: white;
+}
+
+#generate-proof:disabled {
+  background: #e5e5e7;
+  color: #8e8e93;
+  cursor: not-allowed;
+}
+
+#generate-proof:not(:disabled):active {
+  transform: scale(0.98);
+}
+
 /* Improve touch targets for mobile */
 @media (max-width: 767px) {
   .button-container {
-    margin-top: 100px;
+    margin-top: 20px;
   }
   button {
     min-height: 54px;
     font-size: 18px;
   }
-  
+
   body {
     padding: 16px;
+  }
+
+  .upload-controls {
+    gap: 16px;
   }
 }

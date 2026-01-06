@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/snarkjs": "^0.7.9",
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
   },
@@ -16,6 +17,7 @@
     "@capacitor-community/sqlite": "^7.0.2",
     "@capacitor/android": "^8.0.0",
     "@capacitor/core": "^8.0.0",
-    "@capacitor/ios": "^8.0.0"
+    "@capacitor/ios": "^8.0.0",
+    "snarkjs": "^0.7.5"
   }
 }

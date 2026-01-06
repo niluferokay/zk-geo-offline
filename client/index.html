@@ -7,11 +7,52 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div class="button-container">
-      <button id="get-location">Get Location</button>
-      <button id="show-history">Show History</button>
+    <div class="container">
+      <!-- Polygon Selection Section -->
+      <section class="polygon-section">
+        <h2>Select Project</h2>
+        <div id="polygon-selector" class="polygon-selector">
+          <!-- Radio buttons will be dynamically generated -->
+        </div>
+        <div id="polygon-info" class="polygon-info">
+          <!-- Polygon details and hash will be shown here -->
+        </div>
+      </section>
+
+      <!-- Custom Polygon Upload Section -->
+      <section class="upload-section">
+        <details>
+          <summary>Upload Custom Polygon</summary>
+          <div class="upload-controls">
+            <div class="upload-method">
+              <label for="geojson-input">Paste GeoJSON:</label>
+              <textarea id="geojson-input" rows="6" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]]}'>
+              </textarea>
+              <button id="load-geojson">Load GeoJSON</button>
+            </div>
+            <div class="upload-method">
+              <label for="file-input">Or upload .json file:</label>
+              <input type="file" id="file-input" accept=".json,.geojson" />
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Location Acquisition Section -->
+      <section class="location-section">
+        <h2>ZK Proof Generation</h2>
+        <div class="button-container">
+          <button id="acquire-and-prove">Acquire GNSS & Generate ZK Proof</button>
+        </div>
+        <pre id="location-output"></pre>
+      </section>
+
+      <!-- History Section -->
+      <section class="history-section">
+        <button id="show-history">Show History</button>
+      </section>
     </div>
-    <pre id="location-output"></pre>
+
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
