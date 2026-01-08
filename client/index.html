@@ -3,55 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>zk-geo-v1</title>
+    <title>ZK Location Proof</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <div class="container">
-      <!-- Polygon Selection Section -->
-      <section class="polygon-section">
-        <h2>Select Project</h2>
-        <div id="polygon-selector" class="polygon-selector">
-          <!-- Radio buttons will be dynamically generated -->
-        </div>
-        <div id="polygon-info" class="polygon-info">
-          <!-- Polygon details and hash will be shown here -->
-        </div>
-      </section>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <h1>ZK Location Proof</h1>
+      </header>
 
-      <!-- Custom Polygon Upload Section -->
-      <section class="upload-section">
-        <details>
-          <summary>Upload Custom Polygon</summary>
-          <div class="upload-controls">
-            <div class="upload-method">
-              <label for="geojson-input">Paste GeoJSON:</label>
-              <textarea id="geojson-input" rows="6" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]]}'>
-              </textarea>
-              <button id="load-geojson">Load GeoJSON</button>
-            </div>
-            <div class="upload-method">
-              <label for="file-input">Or upload .json file:</label>
-              <input type="file" id="file-input" accept=".json,.geojson" />
-            </div>
+      <!-- Polygon Selection (Collapsible) -->
+      <section class="polygon-section" data-collapsed="false">
+        <div class="section-header">
+          <div class="section-title">
+            <h2>Select Boundary</h2>
           </div>
-        </details>
-      </section>
-
-      <!-- Location Acquisition Section -->
-      <section class="location-section">
-        <h2>ZK Proof Generation</h2>
-        <div class="button-container">
-          <button id="acquire-and-prove">Acquire GNSS & Generate ZK Proof</button>
+          <button class="collapse-btn" id="polygon-collapse-btn" aria-label="Collapse section">
+            <span class="icon">▼</span>
+          </button>
         </div>
-        <pre id="location-output"></pre>
+        <div class="section-content">
+          <div id="polygon-selector" class="polygon-selector">
+            <!-- Radio buttons will be dynamically generated -->
+          </div>
+          <div id="polygon-info" class="polygon-info">
+            <!-- Polygon details and hash will be shown here -->
+          </div>
+
+          <!-- Custom Polygon Upload -->
+          <details class="custom-polygon-upload">
+            <summary>Custom Boundary</summary>
+            <div class="upload-controls">
+              <div class="upload-method">
+                <label for="geojson-input">Paste GeoJSON:</label>
+                <textarea id="geojson-input" rows="6" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]}'></textarea>
+                <button id="load-geojson">Import Polygon</button>
+              </div>
+              <div class="upload-method">
+                <input type="file" id="file-input" accept=".json,.geojson" />
+              </div>
+            </div>
+          </details>
+        </div>
       </section>
 
-      <!-- History Section -->
+      <!-- Proof Generation (Primary Action) -->
+      <section class="generation-section">
+        <h2>Generate Proof</h2>
+        <div class="selected-polygon-summary">
+          Selected: <strong id="selected-polygon-name"></strong>
+        </div>
+        <button id="generate-proof-btn" class="proof-button state-idle" aria-live="polite" aria-busy="false">
+          <span class="icon">📍</span>
+          <div class="button-content">
+            <span class="label">Generate Proof</span>
+            <span class="sublabel">Requires location access</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+        </button>
+        <div class="timer-display" id="timer-display" style="display: none;"></div>
+      </section>
+
+      <!-- Proof Result (Dominant After Success) -->
+      <section class="result-section" id="result-section" style="display: none;">
+        <div id="result-card" class="result-card">
+          <!-- Result card will be dynamically generated -->
+        </div>
+      </section>
+
+      <!-- Error Display -->
+      <section class="error-section" id="error-section" style="display: none;">
+        <div id="error-card" class="error-card">
+          <!-- Error card will be dynamically generated -->
+        </div>
+      </section>
+
+      <!-- Proof History -->
       <section class="history-section">
-        <button id="show-history">Show History</button>
+        <button id="proof-history-btn" class="secondary-button">
+          Proof History <span class="count" id="history-count"></span>
+        </button>
+        <div id="history-panel" class="history-panel" style="display: none;">
+          <div class="history-header">
+            <h3>Proof History</h3>
+            <button id="clear-history" class="text-button">Clear All</button>
+          </div>
+          <div id="history-list" class="history-list">
+            <!-- History cards will be dynamically generated -->
+          </div>
+        </div>
       </section>
     </div>
+
+    <!-- Screen reader announcements -->
+    <div role="status" aria-live="polite" class="sr-only" id="sr-announcements"></div>
 
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>

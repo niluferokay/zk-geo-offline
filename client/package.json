@@ -18,6 +18,8 @@
     "@capacitor/android": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "@capacitor/ios": "^8.0.0",
+    "@types/leaflet": "^1.9.21",
+    "leaflet": "^1.9.4",
     "snarkjs": "^0.7.5"
   }
 }

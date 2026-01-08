@@ -127,3 +127,18 @@ export async function getProofBySessionId(sessionId: string) {
     publicSignals: session.publicSignals
   };
 }
+
+export async function clearAllSessions() {
+  const db = await openDB();
+  const tx = db.transaction('gnss_sessions', 'readwrite');
+  const store = tx.objectStore('gnss_sessions');
+
+  return new Promise<void>((resolve, reject) => {
+    const request = store.clear();
+    request.onsuccess = () => {
+      console.log('✓ All sessions cleared');
+      resolve();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    target: 'es2015'
+    target: 'es2020',
   },
   server: {
     headers: {
@@ -10,7 +10,16 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
   },
+  preview: {
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
+  },
   optimizeDeps: {
-    exclude: ['sql.js']
-  }
+    exclude: ['sql.js'],
+    esbuildOptions: {
+      target: 'es2020',
+    },
+  },
 })
