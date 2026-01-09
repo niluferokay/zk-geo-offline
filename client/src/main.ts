@@ -1,4 +1,4 @@
-import { saveGNSS, listAllSessions, initWebStore, getAllProofs, getProofBySessionId, clearAllSessions } from './db';
+import { saveGNSS, listAllSessions, initWebStore, getAllProofs, getProofBySessionId, clearAllSessions, deleteSession } from './db';
 import { generateLocationProof} from './proof';
 import {
   DEMO_POLYGONS,
@@ -348,7 +348,7 @@ function setupPolygonUpload() {
 /**
  * Display success result card
  */
-function showSuccessResult(sessionId: string, gnssFix: any, proof: any, publicSignals: string[], polygonHash: string) {
+function showSuccessResult(sessionId: string, gnssFix: any, proof: any, publicSignals: string[], polygonHash: string, provingTimeSeconds?: number) {
   const resultSection = document.getElementById('result-section');
   const resultCard = document.getElementById('result-card');
   const errorSection = document.getElementById('error-section');
@@ -366,36 +366,35 @@ function showSuccessResult(sessionId: string, gnssFix: any, proof: any, publicSi
       <span class="result-title">Proof Generated Locally</span>
     </div>
 
-    <div class="result-section-title">Project Forest:${currentPolygon.name}</div>
+    <div class="result-section-title">${currentPolygon.name}</div>
     <div class="result-item">
-      <span class="label">Status:</span>
-      <span class="value" style="font-weight: 600; color: ${isInside ? '#22c55e' : '#ef4444'}">${isInside ? 'Inside project boundary' : 'Outside project boundary'}</span>
+      <span class="value" style="font-weight: 600; color: ${isInside ? '#22c55e' : '#ef4444'}">${isInside ? 'Inside project boundary' : 'Outside project boundary'} (${gnssFix.accuracy.toFixed(1)}m accuracy)</span>
     </div>
     <div class="result-item">
       <span class="label">This is a local UI check for demonstration only.
-The project verifies the proof independently.
-Status: Ready to submit
-    </div>
-    <div class="result-item">
-      <span class="label">Accuracy:</span>
-      <span class="value">${gnssFix.accuracy.toFixed(1)}m </span>
+The project verifies the proof independently.</span>
     </div>
   `;
 
   html += `
-    <div class="result-section-title">Cryptographic Proof</div>
     <div class="result-item">
-      <span class="label">Proof size:</span>
-      <span class="value">${(JSON.stringify(proof).length / 1024).toFixed(2)} KB</span>
-    </div>
-    <div class="result-item">
-      <span class="label">Public signals:</span>
-      <span class="value">${publicSignals.length} value${publicSignals.length > 1 ? 's' : ''}</span>
+      <span class="label">Session ID:</span>
+      <span class="value" style="font-family: monospace; font-size: 11px; word-break: break-all;">${sessionId.substring(0, 16)}...${polygonHash.substring(polygonHash.length - 8)}</span>
     </div>
     <div class="result-item">
       <span class="label">Boundary hash:</span>
       <span class="value" style="font-family: monospace; font-size: 11px; word-break: break-all;">${polygonHash.substring(0, 16)}...${polygonHash.substring(polygonHash.length - 8)}</span>
     </div>
+    <div class="result-item">
+      <span class="label">Proof size:</span>
+      <span class="value">${(JSON.stringify(proof).length / 1024).toFixed(2)} KB</span>
+    </div>
+    ${provingTimeSeconds !== undefined ? `
+    <div class="result-item">
+      <span class="label">Proving time:</span>
+      <span class="value">${provingTimeSeconds}s</span>
+    </div>
+    ` : ''}
   `;
 
   html += `
@@ -407,8 +406,6 @@ Status: Ready to submit
     <details style="margin-top: 16px;">
       <summary style="cursor: pointer; opacity: 0.7; font-size: 13px;">Show technical details</summary>
       <div style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.05); border-radius: 4px;">
-        <div style="font-size: 12px; margin-bottom: 8px;"><strong>Proof Session ID:</strong><br><code style="word-break: break-all;">${sessionId}</code></div>
-        <div style="font-size: 12px; margin-bottom: 8px;"><strong>Full Boundary Hash:</strong><br><code style="word-break: break-all;">${polygonHash}</code></div>
         <div style="font-size: 12px;"><strong>Raw Proof:</strong></div>
         <pre style="font-size: 10px; overflow-x: auto; max-height: 200px;">${JSON.stringify({ proof, publicSignals }, null, 2)}</pre>
       </div>
@@ -606,6 +603,7 @@ function setupProofGeneration() {
     setProofButtonState(ProofState.GENERATING);
 
     const sessionId = crypto.randomUUID();
+    const proofStartTime = Date.now();
 
     try {
       // Ensure web store is initialized
@@ -624,20 +622,25 @@ function setupProofGeneration() {
         circuitInput.polygon
       );
 
-      // Save with proof
+      const proofEndTime = Date.now();
+      const provingTimeSeconds = Math.floor((proofEndTime - proofStartTime) / 1000);
+
+      const polygonHash = await calculatePolygonHash(currentPolygon.coordinates);
+
+      // Save with proof, polygon name and hash
       await saveGNSS(sessionId, {
         ...gnssFix,
         proof,
-        publicSignals
+        publicSignals,
+        polygonName: currentPolygon.name,
+        polygonHash
       });
-
-      const polygonHash = await calculatePolygonHash(currentPolygon.coordinates);
 
       // Set success state
       setProofButtonState(ProofState.SUCCESS);
 
       // Show success result
-      showSuccessResult(sessionId, gnssFix, proof, publicSignals, polygonHash);
+      showSuccessResult(sessionId, gnssFix, proof, publicSignals, polygonHash, provingTimeSeconds);
 
       // Auto-collapse polygon section
       autoCollapsePolygonSection();
@@ -766,27 +769,92 @@ async function renderHistoryList() {
 
   historyList.innerHTML = sorted.map(proof => {
     const timestamp = new Date(proof.timestamp);
+    const dateStr = timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const timeStr = timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+    const polygonName = proof.polygonName || 'Unknown Location';
+    const shortSessionId = proof.session_id.substring(0, 8);
+    const shortHash = proof.polygonHash ? `${proof.polygonHash.substring(0, 8)}…${proof.polygonHash.substring(proof.polygonHash.length - 6)}` : 'N/A';
+
+    // Calculate proof size
+    const proofSize = proof.proof ? (JSON.stringify(proof.proof).length / 1024).toFixed(2) : '0';
 
     return `
       <div class="history-card success">
-        <div class="history-header-row">
-          <span class="history-status">✅</span>
-          <span class="history-polygon-name">Location Proof</span>
-        </div>
-        <div class="history-meta">
-          <span>${timestamp.toLocaleDateString()}</span>
-          <span>·</span>
-          <span>${timestamp.toLocaleTimeString()}</span>
+        <div class="history-header">
+          <div class="history-header-left">
+            <span class="history-date">${dateStr}, ${timeStr}</span>
+            <span class="history-separator">  </span>
+            <span class="history-polygon-name">${polygonName}</span>
           </div>
-        <div><strong>Project:</strong> <code>${proof.session_id}</code></div>
-        <div><strong>Session ID:</strong> <code>${proof.session_id}</code></div>
-        <div><strong>Status:</strong> <code>${proof.session_id}</code></div>
+          <button class="history-btn-delete-small" onclick="window.deleteProof('${proof.session_id}')" title="Delete proof">Delete</button>
+        </div>
+        <div class="history-info">
+          <div><strong>Session ID:</strong> <code>${shortSessionId}…</code></div>
+          <div><strong>Boundary hash:</strong> <code>${shortHash}</code></div>
+        </div>
+        <div class="history-info-row">
+          <div><strong>Proof size:</strong> ${proofSize} KB</div>
+        </div>
         <div class="history-actions">
-          <button class="history-btn" onclick="window.downloadProof('${proof.session_id}')">Download</button>
+          <button class="history-btn-download" onclick="window.downloadProof('${proof.session_id}')">Download</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+/**
+ * Format proof data to the project presence proof standard format
+ */
+async function formatProofForDownload(proof: any, polygonName: string, polygonHash: string) {
+  const isInside = proof.publicSignals && proof.publicSignals[0] === '1';
+  const timestamp = new Date(proof.timestamp);
+
+  // Convert proof values to hex strings
+  const formatProofComponent = (component: any): string | string[] | string[][] => {
+    if (Array.isArray(component)) {
+      if (Array.isArray(component[0])) {
+        // pi_b is 2D array
+        return component.map((arr: any[]) => arr.map((val: any) => '0x' + BigInt(val).toString(16)));
+      }
+      // pi_a and pi_c are 1D arrays
+      return component.slice(0, 2).map((val: any) => '0x' + BigInt(val).toString(16));
+    }
+    return '0x' + BigInt(component).toString(16);
+  };
+
+  return {
+    version: '1.0',
+    proof_type: 'presence_proof',
+    generated_at: timestamp.toISOString(),
+
+    project: {
+      boundary_name: polygonName,
+      boundary_hash: polygonHash
+    },
+
+    claim: {
+      inside_boundary: isInside,
+      timestamp: timestamp.toISOString()
+    },
+
+    zk: {
+      system: 'groth16',
+      curve: 'bn254',
+      circuit_version: 'presence_v1',
+
+      proof: {
+        pi_a: formatProofComponent(proof.proof.pi_a),
+        pi_b: formatProofComponent(proof.proof.pi_b),
+        pi_c: formatProofComponent(proof.proof.pi_c)
+      },
+
+      public_inputs: {
+        boundary_hash: polygonHash,
+        timestamp: Math.floor(proof.timestamp / 1000),
+      }
+    }
+  };
 }
 
 // Expose API functions on window object
@@ -796,7 +864,15 @@ async function renderHistoryList() {
     console.error('Proof not found');
     return;
   }
-  const dataStr = JSON.stringify(proof, null, 2);
+
+  // Use stored polygon name and hash, or fall back to current polygon
+  const polygonName = proof.polygonName || currentPolygon.name;
+  const polygonHash = proof.polygonHash || await calculatePolygonHash(currentPolygon.coordinates);
+
+  // Format proof to standard format
+  const formattedProof = await formatProofForDownload(proof, polygonName, polygonHash);
+
+  const dataStr = JSON.stringify(formattedProof, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -839,6 +915,20 @@ async function renderHistoryList() {
 (window as any).dumpGNSS = async () => {
   const rows = await listAllSessions();
   console.table(rows);
+};
+
+(window as any).deleteProof = async (sessionId: string) => {
+  if (confirm('Are you sure you want to delete this proof? This cannot be undone.')) {
+    try {
+      await deleteSession(sessionId);
+      await updateHistoryCount();
+      await updateHistoryList();
+      console.log('Deleted proof:', sessionId);
+    } catch (error) {
+      console.error('Error deleting proof:', error);
+      alert('Failed to delete proof. Check console for details.');
+    }
+  }
 };
 
 if ('serviceWorker' in navigator) {

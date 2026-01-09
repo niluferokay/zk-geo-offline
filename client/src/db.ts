@@ -39,6 +39,8 @@ export async function saveGNSS(sessionId: string, fix: {
   timestamp: number;
   proof?: any;
   publicSignals?: string[];
+  polygonName?: string;
+  polygonHash?: string;
 }) {
   const db = await openDB();
   const tx = db.transaction('gnss_sessions', 'readwrite');
@@ -52,7 +54,9 @@ export async function saveGNSS(sessionId: string, fix: {
     gnss_timestamp: fix.timestamp,
     created_at: Date.now(),
     proof: fix.proof || null,
-    publicSignals: fix.publicSignals || null
+    publicSignals: fix.publicSignals || null,
+    polygonName: fix.polygonName || null,
+    polygonHash: fix.polygonHash || null
   };
 
   await new Promise((resolve, reject) => {
@@ -105,7 +109,9 @@ export async function getAllProofs() {
       timestamp: session.gnss_timestamp,
       created_at: session.created_at,
       proof: session.proof,
-      publicSignals: session.publicSignals
+      publicSignals: session.publicSignals,
+      polygonName: session.polygonName || null,
+      polygonHash: session.polygonHash || null
     }));
 }
 
@@ -124,7 +130,9 @@ export async function getProofBySessionId(sessionId: string) {
     timestamp: session.gnss_timestamp,
     created_at: session.created_at,
     proof: session.proof,
-    publicSignals: session.publicSignals
+    publicSignals: session.publicSignals,
+    polygonName: session.polygonName || null,
+    polygonHash: session.polygonHash || null
   };
 }
 
@@ -137,6 +145,21 @@ export async function clearAllSessions() {
     const request = store.clear();
     request.onsuccess = () => {
       console.log('✓ All sessions cleared');
+      resolve();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function deleteSession(sessionId: string) {
+  const db = await openDB();
+  const tx = db.transaction('gnss_sessions', 'readwrite');
+  const store = tx.objectStore('gnss_sessions');
+
+  return new Promise<void>((resolve, reject) => {
+    const request = store.delete(sessionId);
+    request.onsuccess = () => {
+      console.log('✓ Session deleted:', sessionId);
       resolve();
     };
     request.onerror = () => reject(request.error);
