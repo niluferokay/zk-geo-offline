@@ -26,3 +26,12 @@ Thumbs.db
 
 # MD files
 *.md
+
+# Circuit build artifacts
+circuits/build/
+circuits/*.ptau
+circuits/pot*.ptau
+circuits/proof.json
+circuits/public.json
+circuits/input.json
+circuits/build/
