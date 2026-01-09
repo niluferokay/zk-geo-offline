@@ -10,7 +10,7 @@
     <div class="app-container">
       <!-- Header -->
       <header class="app-header">
-        <h1>ZK Location Proof</h1>
+        <h1 id="app-title" style="cursor: pointer;">ZK Location Proof</h1>
       </header>
 
       <!-- Polygon Selection (Collapsible) -->
@@ -28,7 +28,6 @@
             <!-- Radio buttons will be dynamically generated -->
           </div>
           <div id="polygon-info" class="polygon-info">
-            <!-- Polygon details and hash will be shown here -->
           </div>
 
           <!-- Custom Polygon Upload -->
@@ -48,7 +47,7 @@
         </div>
       </section>
 
-      <!-- Proof Generation (Primary Action) -->
+      <!-- Proof Generation -->
       <section class="generation-section">
         <h2>Generate Proof</h2>
         <div class="selected-polygon-summary">
@@ -65,17 +64,15 @@
         <div class="timer-display" id="timer-display" style="display: none;"></div>
       </section>
 
-      <!-- Proof Result (Dominant After Success) -->
+      <!-- Proof Result -->
       <section class="result-section" id="result-section" style="display: none;">
         <div id="result-card" class="result-card">
-          <!-- Result card will be dynamically generated -->
         </div>
       </section>
 
       <!-- Error Display -->
       <section class="error-section" id="error-section" style="display: none;">
         <div id="error-card" class="error-card">
-          <!-- Error card will be dynamically generated -->
         </div>
       </section>
 
@@ -90,7 +87,6 @@
             <button id="clear-history" class="text-button">Clear All</button>
           </div>
           <div id="history-list" class="history-list">
-            <!-- History cards will be dynamically generated -->
           </div>
         </div>
       </section>

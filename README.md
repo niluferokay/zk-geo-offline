@@ -16,8 +16,6 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5174
-
 ## Demo Flow
 
 ### 1. Select Project

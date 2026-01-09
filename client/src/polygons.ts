@@ -36,13 +36,9 @@ export interface Polygon {
 }
 
 // ============================================================================
-// DEMO POLYGONS (LocalScaled test fixtures)
+// DEMO POLYGONS
 // ============================================================================
 
-/**
- * Demo polygon A - LocalScaled test fixture (NOT real GPS coordinates)
- * These are pre-scaled integer coordinates for testing without GPS
- */
 const DEMO_FOREST_A: Polygon = {
   id: 'demo-forest-a',
   name: 'Demo Forest A',
@@ -61,10 +57,6 @@ const DEMO_FOREST_A: Polygon = {
   latOffset: 41.09
 };
 
-/**
- * Demo polygon B - LocalScaled test fixture (NOT real GPS coordinates)
- * These are pre-scaled integer coordinates for testing without GPS
- */
 const DEMO_FOREST_B: Polygon = {
   id: 'demo-forest-b',
   name: 'Demo Forest B',
@@ -184,7 +176,6 @@ export function localScaledToCircuitGrid(
 
 /**
  * Parse GeoJSON and extract GeoDegrees coordinates
- * REJECTS polygons with holes (only outer ring is preserved with warning)
  */
 export function parseGeoJSON(geojson: any): GeoDegrees[] {
   if (!geojson || !geojson.type) {
@@ -284,10 +275,7 @@ export function removeClosingDuplicate<T extends readonly [number, number]>(poly
  * - Counter-clockwise order
  * - Vertices evenly distributed along perimeter
  * - Small jitter applied (may not fully prevent axis-aligned edges after rounding)
- *
- * NOTE: After rounding to integers, some edges may still be axis-aligned.
- * The jitter reduces but does not eliminate this possibility.
- */
+ * */
 export function makeSafeEightPolygon(poly: LocalScaled[]): LocalScaled[] {
   // Remove closing duplicate
   poly = removeClosingDuplicate(poly);

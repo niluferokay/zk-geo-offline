@@ -936,6 +936,18 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js');
 }
 
+/**
+ * Setup home link on title
+ */
+function setupHomeLink() {
+  const appTitle = document.getElementById('app-title');
+  if (appTitle) {
+    appTitle.addEventListener('click', () => {
+      window.location.reload();
+    });
+  }
+}
+
 // Initialize app
 (async () => {
   await initWebStore();
@@ -947,5 +959,6 @@ if ('serviceWorker' in navigator) {
   setupPolygonUpload();
   setupProofGeneration();
   setupHistoryPanel();
+  setupHomeLink();
   updateHistoryCount();
 })();
