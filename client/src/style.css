@@ -544,48 +544,99 @@ h3 {
 }
 
 .result-card .result-header {
+  margin-bottom: 24px;
+}
+
+.result-card .result-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.result-card .result-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.result-card .result-status-badge {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 17px;
+  font-weight: 600;
 }
 
-.result-card .result-icon {
-  font-size: 32px;
+.result-card .result-status-badge.status-inside {
+  color: var(--color-success);
 }
 
-.result-card .result-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--color-text);
+.result-card .result-status-badge.status-outside {
+  color: var(--color-error);
 }
 
-.result-card .result-section-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 8px;
-  margin-top: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.result-card .status-icon {
+  font-size: 24px;
 }
 
-.result-card .result-item {
-  display: flex;
-  padding: 8px 0;
-  font-size: 14px;
+.result-card .status-accuracy {
+  margin-left: auto;
+  opacity: 0.7;
+  font-size: 15px;
 }
 
-.result-card .result-item .label {
+.result-card .result-disclaimer {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
   color: var(--color-text-secondary);
-  margin-right: 8px;
+  margin-bottom: 24px;
+  line-height: 1.6;
+  border: 1px solid var(--color-border);
 }
 
-.result-card .result-item .value {
-  color: var(--color-text);
+.result-card .result-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+  font-size: 16px;
+}
+
+.result-card .detail-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.result-card .detail-row:last-child {
+  border-bottom: none;
+}
+
+.result-card .detail-label {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 150px;
+  font-size: 16px;
+}
+
+.result-card .detail-value {
   font-weight: 500;
+  color: var(--color-text);
+  flex: 1;
+  font-size: 16px;
+}
+
+.result-card .detail-value code {
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 15px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
 
 .result-card .result-actions {
@@ -596,7 +647,7 @@ h3 {
 }
 
 .result-card .action-btn {
-  padding: 10px 16px;
+  padding: 12px 20px;
   border: 2px solid var(--color-primary);
   background: white;
   color: var(--color-primary);
@@ -604,7 +655,7 @@ h3 {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .result-card .action-btn:hover {
@@ -621,49 +672,74 @@ h3 {
   background: var(--color-primary-dark);
 }
 
-.result-card details {
-  margin-top: 16px;
+.result-card .technical-details {
+  margin-top: 28px;
 }
 
-.result-card details summary {
+.result-card .technical-details summary {
   cursor: pointer;
+  padding: 14px 0;
   font-weight: 600;
-  color: var(--color-primary);
-  padding: 8px;
-  font-size: 14px;
+  color: var(--color-text);
+  font-size: 16px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  transition: all 0.2s;
 }
 
-.result-card details summary::marker {
+.result-card .technical-details summary:hover {
   color: var(--color-primary);
 }
 
-.result-card .raw-json {
-  margin-top: 12px;
-  padding: 16px;
-  background: var(--color-text);
-  color: #00ff00;
-  font-family: 'Courier New', monospace;
+.result-card .technical-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.result-card .technical-details .summary-icon {
   font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.result-card .technical-details[open] .summary-icon {
+  transform: rotate(90deg);
+}
+
+.result-card .code-block {
+  background: #000000;
+  color: #00ff41;
+  font-family: 'SF Mono', 'Courier New', monospace;
+  font-size: 13px;
+  padding: 18px;
   border-radius: var(--radius-sm);
   overflow-x: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  line-height: 1.6;
+  white-space: pre;
+  margin: 16px 0 0 0;
+  border: 1px solid #333;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.result-card .dev-info {
-  background: var(--color-surface-secondary);
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  margin-top: 12px;
-  font-size: 13px;
+.result-card .code-block::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.result-card .dev-info code {
-  font-family: 'Courier New', monospace;
-  background: white;
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: var(--color-primary);
+.result-card .code-block::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.result-card .code-block::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.result-card .code-block::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Error Card */

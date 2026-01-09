@@ -363,52 +363,53 @@ function showSuccessResult(sessionId: string, gnssFix: any, proof: any, publicSi
   // Build result card HTML
   let html = `
     <div class="result-header">
-      <span class="result-title">Proof Generated Locally</span>
+      <div class="result-title">Proof Generated Successfully</div>
+      <div class="result-subtitle">${currentPolygon.name}</div>
     </div>
 
-    <div class="result-section-title">${currentPolygon.name}</div>
-    <div class="result-item">
-      <span class="value" style="font-weight: 600; color: ${isInside ? '#22c55e' : '#ef4444'}">${isInside ? 'Inside project boundary' : 'Outside project boundary'} (${gnssFix.accuracy.toFixed(1)}m accuracy)</span>
+    <div class="result-status-badge ${isInside ? 'status-inside' : 'status-outside'}">
+      <span class="status-icon">${isInside ? '✓' : '✗'}</span>
+      <span>${isInside ? 'Inside project boundary' : 'Outside project boundary'}</span>
+      <span class="status-accuracy">±${gnssFix.accuracy.toFixed(1)}m</span>
     </div>
-    <div class="result-item">
-      <span class="label">This is a local UI check for demonstration only.
-The project verifies the proof independently.</span>
-    </div>
-  `;
 
-  html += `
-    <div class="result-item">
-      <span class="label">Session ID:</span>
-      <span class="value" style="font-family: monospace; font-size: 11px; word-break: break-all;">${sessionId.substring(0, 16)}...${polygonHash.substring(polygonHash.length - 8)}</span>
+    <div class="result-disclaimer">
+      ℹ️ This is a local UI check for demonstration. The project verifies the proof independently.
     </div>
-    <div class="result-item">
-      <span class="label">Boundary hash:</span>
-      <span class="value" style="font-family: monospace; font-size: 11px; word-break: break-all;">${polygonHash.substring(0, 16)}...${polygonHash.substring(polygonHash.length - 8)}</span>
-    </div>
-    <div class="result-item">
-      <span class="label">Proof size:</span>
-      <span class="value">${(JSON.stringify(proof).length / 1024).toFixed(2)} KB</span>
-    </div>
-    ${provingTimeSeconds !== undefined ? `
-    <div class="result-item">
-      <span class="label">Proving time:</span>
-      <span class="value">${provingTimeSeconds}s</span>
-    </div>
-    ` : ''}
-  `;
 
-  html += `
-    <div class="result-actions">
-      <button class="action-btn primary" onclick="window.downloadProof('${sessionId}')">Download Proof</button>    </div>
-  `;
-
-  html += `
-    <details style="margin-top: 16px;">
-      <summary style="cursor: pointer; opacity: 0.7; font-size: 13px;">Show technical details</summary>
-      <div style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.05); border-radius: 4px;">
-        <div style="font-size: 12px;"><strong>Raw Proof:</strong></div>
-        <pre style="font-size: 10px; overflow-x: auto; max-height: 200px;">${JSON.stringify({ proof, publicSignals }, null, 2)}</pre>
+    <div class="result-details-list">
+      <div class="detail-row">
+        <span class="detail-label">Session ID:</span>
+        <span class="detail-value"><code>${sessionId.substring(0, 16)}...</code></span>
       </div>
+      <div class="detail-row">
+        <span class="detail-label">Boundary Hash:</span>
+        <span class="detail-value"><code>${polygonHash.substring(0, 16)}...</code></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Proof Size:</span>
+        <span class="detail-value">${(JSON.stringify(proof).length / 1024).toFixed(2)} KB</span>
+      </div>
+      ${provingTimeSeconds !== undefined ? `
+      <div class="detail-row">
+        <span class="detail-label">Proving Time:</span>
+        <span class="detail-value">${provingTimeSeconds}s</span>
+      </div>
+      ` : ''}
+    </div>
+
+    <div class="result-actions">
+      <button class="action-btn primary" onclick="window.downloadProof('${sessionId}')">
+        <span>📥</span> Download Proof
+      </button>
+    </div>
+
+    <details class="technical-details">
+      <summary>
+        <span class="summary-icon">▶</span>
+        Show Raw Proof Data
+      </summary>
+      <pre class="code-block">${JSON.stringify({ proof, publicSignals }, null, 2)}</pre>
     </details>
   `;
 
