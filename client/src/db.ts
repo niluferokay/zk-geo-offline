@@ -1,6 +1,11 @@
+/**
+ * NOTE:
+ * This database is UNTRUSTED local storage.
+ * All proofs and metadata loaded from here MUST be verified
+ * before being used for authorization or security decisions.
+ */
 import { Capacitor } from '@capacitor/core';
 
-// Simple IndexedDB wrapper for web
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function openDB(): Promise<IDBDatabase> {
@@ -26,12 +31,11 @@ function openDB(): Promise<IDBDatabase> {
 
 export async function initWebStore() {
   if (Capacitor.getPlatform() === 'web') {
-    console.log('Initializing IndexedDB...');
     await openDB();
-    console.log('✓ IndexedDB initialized');
   }
 }
 
+// Add circuitVersion?: string; to the saved GNSS fix structure in future versions
 export async function saveGNSS(sessionId: string, fix: {
   lat: number;
   lon: number;
@@ -48,8 +52,6 @@ export async function saveGNSS(sessionId: string, fix: {
 
   const data = {
     session_id: sessionId,
-    lat: fix.lat,
-    lon: fix.lon,
     accuracy: fix.accuracy,
     gnss_timestamp: fix.timestamp,
     created_at: Date.now(),
@@ -65,10 +67,6 @@ export async function saveGNSS(sessionId: string, fix: {
     request.onerror = () => reject(request.error);
   });
 
-  console.log('✓ GNSS data saved:', sessionId);
-  if (fix.proof) {
-    console.log('✓ ZK proof saved with location');
-  }
 }
 
 export async function loadGNSS(sessionId: string) {
@@ -98,13 +96,10 @@ export async function listAllSessions() {
 export async function getAllProofs() {
   const sessions = await listAllSessions();
 
-  // Filter only sessions that have proofs
   return sessions
     .filter(session => session.proof && session.publicSignals)
     .map(session => ({
       session_id: session.session_id,
-      lat: session.lat,
-      lon: session.lon,
       accuracy: session.accuracy,
       timestamp: session.gnss_timestamp,
       created_at: session.created_at,
@@ -124,8 +119,6 @@ export async function getProofBySessionId(sessionId: string) {
 
   return {
     session_id: session.session_id,
-    lat: session.lat,
-    lon: session.lon,
     accuracy: session.accuracy,
     timestamp: session.gnss_timestamp,
     created_at: session.created_at,
@@ -144,7 +137,6 @@ export async function clearAllSessions() {
   return new Promise<void>((resolve, reject) => {
     const request = store.clear();
     request.onsuccess = () => {
-      console.log('✓ All sessions cleared');
       resolve();
     };
     request.onerror = () => reject(request.error);
@@ -159,7 +151,6 @@ export async function deleteSession(sessionId: string) {
   return new Promise<void>((resolve, reject) => {
     const request = store.delete(sessionId);
     request.onsuccess = () => {
-      console.log('✓ Session deleted:', sessionId);
       resolve();
     };
     request.onerror = () => reject(request.error);

@@ -4,23 +4,13 @@ include "comparators.circom";
 include "sign.circom";
 include "Utility.circom";
 
-/*
-Implements algorithms for working with geometric lines.
-Designed to work over a subset of points of the field ≤ sqrt(p) that doesn't wrap around.
-We assume that the caller implements its own range checks.
-*/
-
-/*
-Returns 1 if two line segments intersect, 0 otherwise.
-*/
+// Proves whether two non-degenerate line segments intersect.
 template Intersects(grid_bits) {
     input signal line1[2][2];
     input signal line2[2][2];
     output signal out;
 
-    /*
-    Make sure neither of the lines are degenerate single points
-    */
+    // Disallow zero-length segments
     component eq[4];
     for (var i = 0; i < 2; i++) {
         eq[i] = IsEqual();
@@ -31,18 +21,11 @@ template Intersects(grid_bits) {
         eq[i+2].in[0] <== line2[0][i];
         eq[i+2].in[1] <== line2[1][i];
     }
-    // Ensure product constraints: if both coordinates equal then product = 1 → degenerate → disallowed
+    // Enforce non-degeneracy
     eq[0].out * eq[1].out === 0;
     eq[2].out * eq[3].out === 0;
 
-    /*
-    Setup orientation circuits:
-        Orientation[0] takes inputs line1 and line2[0]
-        Orientation[1] takes inputs line1 and line2[1]
-        Orientation[2] takes inputs line2 and line1[0]
-        Orientation[3] takes inputs line2 and line1[1]
-    Similarly for InRect circuits
-    */
+    // Orientation and bounding checks
     component orientation[4];
     component inRect[4];
     for (var i = 0; i < 2; i++) {
@@ -81,13 +64,13 @@ template Intersects(grid_bits) {
         inRect[i+2].point[1]   <== line1[i][1];
     }
 
-    // If both points of each line segment are on different sides (i.e., have different orientations wrt) the other line
+    // General intersection test
     signal general_intersection <== (orientation[0].out - orientation[1].out) * (orientation[2].out - orientation[3].out);
 
-    // Handle special case: if a point is collinear with the other line, and it lies on that line segment
+    // Collinear overlap handling
     signal not_special_case[4];
     for (var i = 0; i < 4; i++) {
-        not_special_case[i] <== orientation[i].out + 1 - inRect[i].out; // 0 if collinear & within range
+        not_special_case[i] <== orientation[i].out + 1 - inRect[i].out; 
     }
     signal sc1 <== not_special_case[0] * not_special_case[1];
     signal sc2 <== not_special_case[2] * not_special_case[3];
@@ -102,10 +85,7 @@ template Intersects(grid_bits) {
     out <== negate.out;
 }
 
-/*
-Returns 1 if the 3 points are arranged in a clockwise order,
-0 if they are in a line, and 2 if they are in a counter-clockwise order.
-*/
+// Outputs {0,1,2} for collinear / clockwise / counter-clockwise.
 template Orientation(grid_bits) {
     input signal points[3][2];
     output signal out;
@@ -127,17 +107,13 @@ template Orientation(grid_bits) {
     isZero.in <== f;
     signal nonZero <== 1 - isZero.out;
 
-    // nonZero | isNegative.sign+1 logic
     out <== nonZero * (isNegative.sign + 1);
 
-    // ensure out is in {0,1,2}
     signal x <== out * (out - 1);
     x * (out - 2) === 0;
 }
 
-/*
-Returns 1 if the point lies in a rectangle specified by its two corners, 0 otherwise
-*/
+// Checks point inclusion in segment bounding box.
 template InRect(grid_bits) {
     input signal line[2][2];
     input signal point[2];
@@ -176,10 +152,7 @@ template InRect(grid_bits) {
     out * (out - 1) === 0;
 }
 
-/*
-Returns 1 if a point is on a line segment, 0 otherwise
-A point is on a line segment if it is collinear (i.e., orientation 0) and within the segment’s bounding rectangle
-*/
+// Checks whether a point lies on a line segment.
 template OnSegment(grid_bits) {
     input signal line[2][2];
     input signal point[2];

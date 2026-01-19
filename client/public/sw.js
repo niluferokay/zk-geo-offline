@@ -15,16 +15,16 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  // Service worker logging disabled in production for security
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Caching assets including circuit files');
       return cache.addAll(ASSETS).catch(err => {
-        console.error('[SW] Failed to cache assets:', err);
         // Try to cache individually to identify problem files
         return Promise.all(
           ASSETS.map(asset =>
-            cache.add(asset).catch(e => console.error(`[SW] Failed to cache ${asset}:`, e))
+            cache.add(asset).catch(e => {
+              // Silent failure in production
+            })
           )
         );
       });
@@ -34,13 +34,12 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  // Service worker logging disabled in production for security
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -54,10 +53,8 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then(response => {
       if (response) {
-        console.log('[SW] Serving from cache:', event.request.url);
         return response;
       }
-      console.log('[SW] Fetching from network:', event.request.url);
       return fetch(event.request).then(networkResponse => {
         // Cache successful responses
         if (networkResponse && networkResponse.status === 200) {
@@ -68,7 +65,7 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(err => {
-        console.error('[SW] Fetch failed:', event.request.url, err);
+        // Silent failure in production
         throw err;
       });
     })
