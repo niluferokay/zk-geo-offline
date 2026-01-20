@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'prompt',
-      injectRegister: 'inline',
+      injectRegister: 'script',
       includeAssets: ['icon-192.png', 'icon-512.png', 'sql-wasm.wasm'],
       manifest: {
         name: 'ZK Location Proof',
