@@ -34,13 +34,24 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
+        // iOS Safari A2HS can fail to persist large precaches.
+        // Keep install-time precache small (app shell), and cache circuit artifacts on demand.
         additionalManifestEntries: [
           { url: 'circuits/Main.wasm', revision: null },
-          { url: 'circuits/Main_final.zkey', revision: null },
           { url: 'circuits/verification_key.json', revision: null },
         ],
-        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024, // 25MB to allow zkey file
+        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024,
         runtimeCaching: [
+          {
+            urlPattern: /\/circuits\/.*\.(?:zkey|wasm|json)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'circuits-cache',
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
