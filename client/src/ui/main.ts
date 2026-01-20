@@ -8,7 +8,6 @@
  * This module does not make authorization decisions or validate proofs.
  */
 
-import { Capacitor } from '@capacitor/core';
 import { saveGNSS, initWebStore, listAllSessions } from '../db';
 import { generateLocationProof } from '../proof';
 import {
@@ -516,23 +515,10 @@ function exposeDevAPI(): void {
 // ============================================================================
 
 /**
- * Register service worker for offline support (web only)
- *
- * IMPORTANT: Service workers are skipped on native platforms (iOS/Android).
- * Capacitor apps have assets bundled in the native app package and served
- * directly by WKWebView - they don't need service workers for offline mode.
- * Service workers can actually cause issues on iOS WKWebView.
+ * Register service worker for offline support
  */
 function registerServiceWorker(): void {
-  // Skip on native platforms - assets are already bundled in the app
-  if (Capacitor.isNativePlatform()) {
-    return;
-  }
-
-  // Only register service worker for web browser PWA
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' });
-  }
+  // vite-plugin-pwa handles this with injectRegister: 'inline'
 }
 
 // ============================================================================
