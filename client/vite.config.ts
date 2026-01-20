@@ -35,10 +35,11 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
         additionalManifestEntries: [
-          { url: '/circuits/Main.wasm', revision: null },
-          { url: '/circuits/Main_final.zkey', revision: null },
-          { url: '/circuits/verification_key.json', revision: null },
+          { url: 'circuits/Main.wasm', revision: null },
+          { url: 'circuits/Main_final.zkey', revision: null },
+          { url: 'circuits/verification_key.json', revision: null },
         ],
+        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024, // 25MB to allow zkey file
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
