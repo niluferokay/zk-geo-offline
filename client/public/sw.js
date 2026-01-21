@@ -1,6 +1,6 @@
-const CACHE_NAME = 'zk-geo-v2';
+const CACHE_NAME = 'zk-geo-v3';
 
-// Core assets that must be available offline
+// Core assets to precache on install
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -13,11 +13,9 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('[SW] Caching core assets');
-      // Cache each asset individually so one failure doesn't break all
       return Promise.all(
         CORE_ASSETS.map(asset =>
           cache.add(asset).catch(e => console.warn(`[SW] Failed to cache ${asset}:`, e))
@@ -25,24 +23,23 @@ self.addEventListener('install', (event) => {
       );
     })
   );
+  // Activate immediately
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
       );
     })
   );
-  return self.clients.claim();
+  // Take control immediately
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -53,34 +50,37 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests, try cache first (critical for iOS offline)
+  // For navigation requests (HTML pages)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/index.html').then(response => {
-        if (response) {
+      fetch(event.request)
+        .then(response => {
+          // Cache the fresh response
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('/index.html', clone));
           return response;
-        }
-        return fetch(event.request);
-      })
+        })
+        .catch(() => {
+          // Offline - serve from cache
+          return caches.match('/index.html');
+        })
     );
     return;
   }
 
-  // For other requests: cache-first, then network
+  // For JS/CSS/other assets: cache-first, network fallback
   event.respondWith(
-    caches.match(event.request).then(response => {
-      if (response) {
-        return response;
+    caches.match(event.request).then(cached => {
+      if (cached) {
+        return cached;
       }
-      return fetch(event.request).then(networkResponse => {
-        // Cache successful GET responses
-        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+      return fetch(event.request).then(response => {
+        // Cache successful responses
+        if (response.ok && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
-        return networkResponse;
+        return response;
       });
     })
   );
