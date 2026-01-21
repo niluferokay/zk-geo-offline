@@ -4,8 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     VitePWA({
-      registerType: 'prompt',
-      injectRegister: 'script',
+      registerType: 'autoUpdate',
+      injectRegister: 'inline',
+      selfDestroying: false,
       includeAssets: ['icon-192.png', 'icon-512.png', 'sql-wasm.wasm'],
       manifest: {
         name: 'ZK Location Proof',
@@ -34,6 +35,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
+        // Critical for iOS: activate SW immediately so it controls the page
+        skipWaiting: true,
+        clientsClaim: true,
+        // Ensure navigation to "/" falls back to cached index.html
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         // iOS Safari A2HS can fail to persist large precaches.
         // Keep install-time precache small (app shell), and cache circuit artifacts on demand.
         additionalManifestEntries: [
