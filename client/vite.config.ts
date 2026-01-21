@@ -1,85 +1,8 @@
 import { defineConfig } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [
-    VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'inline',
-      selfDestroying: false,
-      includeAssets: ['icon-192.png', 'icon-512.png', 'sql-wasm.wasm'],
-      manifest: {
-        name: 'ZK Location Proof',
-        short_name: 'ZK Geo',
-        description: 'Privacy-preserving location proofs using zero-knowledge cryptography',
-        theme_color: '#4CAF50',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
-        icons: [
-          {
-            src: '/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: '/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
-        // Critical for iOS: activate SW immediately so it controls the page
-        skipWaiting: true,
-        clientsClaim: true,
-        // Ensure navigation to "/" falls back to cached index.html
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        // iOS Safari A2HS can fail to persist large precaches.
-        // Keep install-time precache small (app shell), and cache circuit artifacts on demand.
-        additionalManifestEntries: [
-          { url: 'circuits/Main.wasm', revision: null },
-          { url: 'circuits/verification_key.json', revision: null },
-        ],
-        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /\/circuits\/.*\.(?:zkey|wasm|json)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'circuits-cache',
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 365 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
-      },
-    }),
-  ],
   build: {
-    target: 'esnext', // Must be esnext for BigInt support (required by snarkjs)
-    minify: 'terser',
+    target: 'es2020',
   },
   server: {
     headers: {
@@ -96,10 +19,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['sql.js'],
     esbuildOptions: {
-      target: 'esnext', // Must be esnext for BigInt support
-      supported: {
-        bigint: true, // Explicitly enable BigInt
-      },
+      target: 'es2020',
     },
   },
 })
