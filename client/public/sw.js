@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zk-geo-v3';
+const CACHE_NAME = 'zk-geo-v1';
 
 // Core assets to precache on install
 const CORE_ASSETS = [

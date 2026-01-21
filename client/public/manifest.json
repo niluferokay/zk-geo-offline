@@ -1,5 +1,5 @@
 {
-  "name": "ZK Location Proof",
+  "name": "ZK Geofence Proof",
   "short_name": "ZK Geo",
   "description": "Privacy-preserving location proofs using zero-knowledge cryptography",
   "start_url": "/",
