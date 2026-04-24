@@ -17,7 +17,7 @@ export default defineConfig({
     
     // Only include ZK parity tests
     include: [
-      'tests/integration/zk-parity.test.ts'
+      'tests/zk/zk-parity.test.ts'
     ],
     
     // Keep the setup for crypto globals

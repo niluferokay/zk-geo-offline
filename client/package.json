@@ -15,7 +15,7 @@
     "test:geometry": "vitest run tests/unit/geometry.test.ts tests/unit/normalization.test.ts",
     "test:zk:fast": "vitest run --config vitest.zk.config.ts --testNamePattern='(simple_square|l_shape|tiny_polygon)'",
     "test:zk:full": "vitest run --config vitest.zk.config.ts",
-    "test:all": "vitest run --exclude tests/integration/zk-parity.test.ts",
+    "test:all": "vitest run --exclude tests/zk",
     "coverage": "vitest run --coverage",
     "coverage:ui": "vitest run --coverage --ui"
   },

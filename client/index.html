@@ -1,107 +1,238 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZK Geofence Proof</title>
-    <meta name="description" content="Privacy-preserving location proofs using zero-knowledge cryptography" />
-    <meta name="theme-color" content="#4CAF50" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="stylesheet" href="/src/style.css" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="ZK Geo" />
-  </head>
-  <body>
-    <div class="app-container">
-      <!-- Header -->
-      <header class="app-header">
-        <h1 id="app-title" style="cursor: pointer;">ZK Geofence Proof</h1>
-      </header>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zkgeo — Privacy-Preserving Location Proof</title>
+<meta name="description" content="Privacy-preserving location proofs using zero-knowledge cryptography" />
+<meta name="theme-color" content="#5dbe78" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Fira+Code:wght@300;400;500&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/style.css" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="zkgeo" />
+</head>
+<body>
+<div class="wrapper">
 
-      <!-- Polygon Selection (Collapsible) -->
-      <section class="polygon-section" data-collapsed="false">
-        <div class="section-header">
+  <!-- HEADER -->
+  <header>
+    <div class="logo" id="app-title" style="cursor:pointer;">
+      <div class="logo-mark">
+        <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19" cy="19" r="18" stroke="#243428" stroke-width="1"/>
+          <circle cx="19" cy="19" r="12" stroke="#2e4535" stroke-width="0.75"/>
+          <path d="M19 7 L28 24 L10 24 Z" stroke="#5dbe78" stroke-width="1" fill="rgba(93,190,120,0.08)"/>
+          <circle cx="19" cy="19" r="2.5" fill="#5dbe78"/>
+          <line x1="19" y1="7" x2="19" y2="4" stroke="#3d9455" stroke-width="0.75"/>
+          <line x1="28" y1="24" x2="31" y2="26" stroke="#3d9455" stroke-width="0.75"/>
+          <line x1="10" y1="24" x2="7" y2="26" stroke="#3d9455" stroke-width="0.75"/>
+        </svg>
+      </div>
+      <div class="logo-text">zk<span>geo</span></div>
+    </div>
+    <div class="header-tag">Groth16 · BN254 · Circom</div>
+  </header>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Zero-Knowledge Location Verification</div>
+    <h1>Prove presence<br>without <em>revealing position</em></h1>
+    <p>Cryptographically verify that you are inside a geographic zone — without disclosing your exact coordinates. Built for environmental defenders whose locations must remain private.</p>
+  </div>
+
+  <!-- GUARANTEES -->
+  <div class="guarantees">
+    <div class="guarantee">
+      <div class="guarantee-icon">&#x2713;</div>
+      <div class="guarantee-text"><strong>Coordinates stay private</strong>GPS location never leaves your device</div>
+    </div>
+    <div class="guarantee">
+      <div class="guarantee-icon">&#x2713;</div>
+      <div class="guarantee-text"><strong>Verifiable on-chain</strong>Groth16 proof verified by smart contract</div>
+    </div>
+    <div class="guarantee">
+      <div class="guarantee-icon">&#x2713;</div>
+      <div class="guarantee-text"><strong>Boundary tamper-proof</strong>SHA-256 hash binds proof to specific zone</div>
+    </div>
+    <div class="guarantee">
+      <div class="guarantee-icon">&#x2713;</div>
+      <div class="guarantee-text"><strong>Fully offline</strong>No server, no trusted third party required</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: WORKFLOW -->
+    <div>
+
+      <!-- Step 1: Polygon Selection -->
+      <section class="polygon-section card" data-collapsed="false" style="margin-bottom:16px;">
+        <div class="card-header section-header">
           <div class="section-title">
-            <h2>Select Boundary</h2>
+            <div class="card-title">Boundary Selection</div>
+            <span id="current-polygon-display" class="current-selection"></span>
           </div>
-          <button class="collapse-btn" id="polygon-collapse-btn" aria-label="Collapse section">
-            <span class="icon">▼</span>
-          </button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="card-step">step 01</div>
+            <button class="collapse-btn" id="polygon-collapse-btn" aria-label="Collapse section">
+              <span class="icon">&#x25BC;</span>
+            </button>
+          </div>
         </div>
-        <div class="section-content">
-          <div id="polygon-selector" class="polygon-selector">
-            <!-- Radio buttons will be dynamically generated -->
-          </div>
-          <div id="polygon-info" class="polygon-info">
-          </div>
+        <div class="card-body section-content">
+          <!-- Polygon radio buttons injected here by JS -->
+          <div id="polygon-selector" class="polygon-selector"></div>
+          <!-- Boundary hash / info injected here by JS -->
+          <div id="polygon-info" class="polygon-info"></div>
 
-          <!-- Custom Polygon Upload -->
           <details class="custom-polygon-upload">
             <summary>Custom Boundary</summary>
             <div class="upload-controls">
-              <div class="upload-method">
-                <label for="geojson-input">Paste GeoJSON:</label>
-                <textarea id="geojson-input" rows="6" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]}'></textarea>
-                <button id="load-geojson">Import Polygon</button>
+              <div class="upload-zone" onclick="document.getElementById('file-input').click()" style="cursor:pointer;">
+                <div class="upload-icon">&#x2B21;</div>
+                <div class="upload-text"><strong>Click to select GeoJSON file</strong> or paste below</div>
               </div>
-              <div class="upload-method">
-                <input type="file" id="file-input" accept=".json,.geojson" />
-              </div>
+              <input type="file" id="file-input" accept=".json,.geojson" style="display:none;" />
+              <textarea class="geojson-input" id="geojson-input" rows="4" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]}'></textarea>
+              <button class="btn btn-secondary" id="load-geojson" style="margin-top:8px;">Import Polygon</button>
             </div>
           </details>
         </div>
       </section>
 
-      <!-- Proof Generation -->
-      <section class="generation-section">
-        <h2>Generate Proof</h2>
-        <div class="selected-polygon-summary">
-          Selected: <strong id="selected-polygon-name"></strong>
+      <!-- Step 3: Proof Generation -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title">Proof Generation</div>
+          <div class="card-step">step 02</div>
         </div>
-        <button id="generate-proof-btn" class="proof-button state-idle" aria-live="polite" aria-busy="false">
-          <span class="icon">📍</span>
-          <div class="button-content">
-            <span class="label">Generate Proof</span>
-            <span class="sublabel">Requires location access</span>
+        <div class="card-body">
+          <div class="selected-polygon-summary">
+            Selected: <strong id="selected-polygon-name"></strong>
           </div>
-          <div class="progress-bar"><div class="progress-fill"></div></div>
-        </button>
-        <div class="timer-display" id="timer-display" style="display: none;"></div>
+          <button id="generate-proof-btn" class="proof-button state-idle" aria-live="polite" aria-busy="false">
+            <span class="icon">&#x1F510;</span>
+            <div class="button-content">
+              <span class="label">Generate Proof</span>
+              <span class="sublabel">Requires location access</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+          </button>
+          <div class="timer-display" id="timer-display" style="display:none;"></div>
+        </div>
+      </div>
+
+      <!-- Result Section — shown by JS on proof success -->
+      <section id="result-section" style="display:none; margin-bottom:16px;">
+        <div id="result-card" class="result-card"></div>
       </section>
 
-      <!-- Proof Result -->
-      <section class="result-section" id="result-section" style="display: none;">
-        <div id="result-card" class="result-card">
-        </div>
-      </section>
-
-      <!-- Error Display -->
-      <section class="error-section" id="error-section" style="display: none;">
-        <div id="error-card" class="error-card">
-        </div>
+      <!-- Error Section — shown by JS on error -->
+      <section id="error-section" style="display:none; margin-bottom:16px;">
+        <div id="error-card" class="error-card"></div>
       </section>
 
       <!-- Proof History -->
-      <section class="history-section">
-        <button id="proof-history-btn" class="secondary-button">
-          Proof History <span class="count" id="history-count"></span>
-        </button>
-        <div id="history-panel" class="history-panel" style="display: none;">
-          <div class="history-header">
-            <h3>Proof History</h3>
-            <button id="clear-history" class="text-button">Clear All</button>
-          </div>
-          <div id="history-list" class="history-list">
+      <section class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <div class="card-title">Proof History</div>
+          <span id="history-count" style="font-family:var(--mono);font-size:10px;color:var(--text3);"></span>
+        </div>
+        <div class="card-body">
+          <button id="proof-history-btn" class="secondary-button">
+            Show History
+          </button>
+          <div id="history-panel" class="history-panel" style="display:none;">
+            <div class="history-header">
+              <h3>Proof History</h3>
+              <button id="clear-history" class="text-button">Clear All</button>
+            </div>
+            <div id="history-list" class="history-list"></div>
           </div>
         </div>
       </section>
+
     </div>
 
-    <!-- Screen reader announcements -->
-    <div role="status" aria-live="polite" class="sr-only" id="sr-announcements"></div>
+    <!-- RIGHT: SIDE PANEL -->
+    <div class="side-panel">
 
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+      <!-- What is proven -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Statement Proven</div>
+        </div>
+        <div class="info-section">
+          <div class="info-label">Zero-knowledge claim</div>
+          <div class="info-text">"There exists a private point P inside the defined polygon boundary — without revealing the coordinates of P."</div>
+        </div>
+        <div style="border-top:1px solid var(--border);">
+          <div class="proof-schema">
+            <div class="info-label" style="margin-bottom:12px;">Proof inputs</div>
+            <div class="schema-row">
+              <div class="schema-visibility public">public</div>
+              <div class="schema-desc"><strong>Polygon vertices</strong>Zone boundary coordinates</div>
+            </div>
+            <div class="schema-row">
+              <div class="schema-visibility private">private</div>
+              <div class="schema-desc"><strong>GPS coordinates</strong>Never displayed, never transmitted</div>
+            </div>
+            <div class="schema-row">
+              <div class="schema-visibility public">public</div>
+              <div class="schema-desc"><strong>Output signal</strong>1 = inside &middot; 0 = outside</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Circuit stats -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Circuit</div>
+        </div>
+        <div class="circuit-info">
+          <div class="circuit-stat">
+            <span class="circuit-stat-val">~100k</span>
+            <span class="circuit-stat-key">constraints</span>
+          </div>
+          <div class="circuit-stat">
+            <span class="circuit-stat-val">8</span>
+            <span class="circuit-stat-key">max vertices</span>
+          </div>
+          <div class="circuit-stat">
+            <span class="circuit-stat-val">Groth16</span>
+            <span class="circuit-stat-key">proof system</span>
+          </div>
+          <div class="circuit-stat">
+            <span class="circuit-stat-val">BN254</span>
+            <span class="circuit-stat-key">curve</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-author">
+      Built by <strong>Nilufer Okay</strong> 
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com" class="footer-link">github</a>
+      <a href="#" class="footer-link">paper</a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Screen reader live region -->
+<div role="status" aria-live="polite" class="sr-only" id="sr-announcements"></div>
+<div id="app"></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
 </html>
