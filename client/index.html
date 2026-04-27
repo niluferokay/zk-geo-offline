@@ -92,10 +92,10 @@
           <details class="custom-polygon-upload">
             <summary>Custom Boundary</summary>
             <div class="upload-controls">
-              <div class="upload-zone" onclick="document.getElementById('file-input').click()" style="cursor:pointer;">
+              <label for="file-input" class="upload-zone" style="cursor:pointer; display:block;">
                 <div class="upload-icon">&#x2B21;</div>
                 <div class="upload-text"><strong>Click to select GeoJSON file</strong> or paste below</div>
-              </div>
+              </label>
               <input type="file" id="file-input" accept=".json,.geojson" style="display:none;" />
               <textarea class="geojson-input" id="geojson-input" rows="4" placeholder='{"type":"Polygon","coordinates":[[[lon,lat],...]}'></textarea>
               <button class="btn btn-secondary" id="load-geojson" style="margin-top:8px;">Import Polygon</button>
